@@ -39,16 +39,26 @@ def find_path (source_point, destination_point, mesh):
 def BFS(start, goal, mesh):
     queue = [start] 
     TheSet = set([])
+    TheDict = {} # {CHILD : PARENT}
     while True:
         node = queue.pop()
         if(node == goal):
             print("SUCCESS")
-            return goal #Im not sure how to return the correct from start to goal. NEEDS WORK.
+            path = [node]
+            while path[-1] != start:
+                parent = TheDict.get(path[-1])
+                path.append(parent)
+                if(len(path) > 500):
+                    print("PATH TOO LONG")
+                    break
+            print(path)
+            return path #Im not sure how to return the correct from start to goal. NEEDS WORK.
         else:
             TheSet.add(node)
             for x in mesh["adj"].get(node):
                 if(x not in TheSet):
                     queue.append(x)
+                    TheDict.update({x:node})
         if(not queue): #checks at the END of the loop if queue is empty.
             break
     print("No path!") #if no other paths exist, this runs after if(not queue)
