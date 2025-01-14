@@ -1,3 +1,4 @@
+import math
 def find_path (source_point, destination_point, mesh):
 
     """
@@ -30,13 +31,13 @@ def find_path (source_point, destination_point, mesh):
 
     #simple search algorithm
     try:
-        BFS(start_end_boxes[0], start_end_boxes[1], mesh)
+        path = BFS(start_end_boxes[0], start_end_boxes[1], mesh, source_point, destination_point)
     except: #only runs when invalid inputs(needs 2 boxes), or the other case. 
-        print("No path!")
+        print("No path!2")
 
     return path, boxes.keys()
 
-def BFS(start, goal, mesh):
+def BFS(start, goal, mesh, sources, goals):
     queue = [start] 
     TheSet = set([])
     TheDict = {} # {CHILD : PARENT}
@@ -45,14 +46,17 @@ def BFS(start, goal, mesh):
         if(node == goal):
             print("SUCCESS")
             path = [node]
+            drawnpath = [goals, boxToCenterPoint(node)]
             while path[-1] != start:
                 parent = TheDict.get(path[-1])
+                #other = boxesToEdgePoint(parent, path[0])
                 path.append(parent)
+                drawnpath.append(boxToCenterPoint(parent))
                 if(len(path) > 500):
                     print("PATH TOO LONG")
                     break
-            print(path)
-            return path #Im not sure how to return the correct from start to goal. NEEDS WORK.
+            drawnpath.append(sources)
+            return drawnpath 
         else:
             TheSet.add(node)
             for x in mesh["adj"].get(node):
@@ -62,3 +66,19 @@ def BFS(start, goal, mesh):
         if(not queue): #checks at the END of the loop if queue is empty.
             break
     print("No path!") #if no other paths exist, this runs after if(not queue)
+
+
+def boxToCenterPoint(box): #Turns a box into a center point and returns it (x,y). 
+    pointone = (box[1] + box[0]) / 2
+    pointtwo = (box[2] + box[3]) / 2 
+    return [pointone, pointtwo]
+
+def boxesToEdgePoint(box, boxtwo): #Finds a range at the border of two points. Returns the average of the range (x,y).
+    pointone = max(box[0], boxtwo[0])
+    pointtwo = min(box[1], boxtwo[1])
+    pointthree = max(box[2], boxtwo[2])
+    pointfour = min(box[3], boxtwo[3])
+    return [(pointthree + pointfour)/ 2, (pointone + pointtwo) / 2] 
+
+def euclideanDistance(point, pointtwo): #finds the closest disance between two points. Returns an int.
+    return [math.sqrt((point[0] + pointtwo[0])^2 + (point[1] + pointtwo[1])^2)]
