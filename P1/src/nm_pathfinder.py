@@ -84,21 +84,21 @@ def boxesToEdgePoint(point, box): #Finds a range at the border of two points. Re
     dist2 = euclideanDistance(point,p2)
     dist3 = euclideanDistance(point,p3)
     dist4 = euclideanDistance(point,p4)
-    #print(min(euclideanDistance(point,p1),euclideanDistance(point,p2),euclideanDistance(point,p3),euclideanDistance(point,p4)))
+    print(min(euclideanDistance(point,p1),euclideanDistance(point,p2),euclideanDistance(point,p3),euclideanDistance(point,p4)))
     if(dist1 <= dist2 and dist1 <= dist3 and dist1 <= dist4):
-        #print(dist1)
+        print(dist1)
         return p1
     elif(dist2 <= dist1 and dist2 <= dist3 and dist2 <= dist4):
-        #print(dist2)
+        print(dist2)
         return p2
     elif(dist3 <= dist1 and dist3 <= dist2 and dist3 <= dist4):
-        #print(dist3)
+        print(dist3)
         return p3
     elif(dist4 <= dist1 and dist4 <= dist2 and dist4 <= dist3):
-        #print(dist4)
+        print(dist4)
         return p4
     else:
         print("ERO")
 
 def euclideanDistance(point, pointtwo): #finds the closest disance between two points. Returns an int.
-    return [math.sqrt((point[0] + pointtwo[0])^2 + (point[1] + pointtwo[1])^2)]
+    return [math.sqrt((point[0] - pointtwo[0])**2 + (point[1] - pointtwo[1])**2)]
