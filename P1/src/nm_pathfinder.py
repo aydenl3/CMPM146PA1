@@ -144,11 +144,12 @@ def reconstruct_path(TheDict, startbox, endbox, start, goal):
     if(startbox == endbox):
         path.append(start)
         return path
-    
+    path.append(boxesToEdgePoint(start, endbox))
     #current = TheDict[current]
     while current != startbox:
         path.append(boxesToEdgePoint(path[-1], current))
         current = TheDict[current]
+    path.append(boxesToEdgePoint(goal, startbox))
     path.append(start)
     return path
 
