@@ -159,3 +159,40 @@ def path_to_cell(cell, path):
     if(cell == []):
         return []
     return path_to_cell(path[cell], path) + [cell]
+
+def AStarBidirection(start, goal, adj, startbox, endbox, TheDict):
+    TheDict.update({startbox: None}) 
+    TheDicttwo.update({endbox: None}) #edit later
+    pathcost = {startbox: 0}
+    queue = []
+    heappush(queue, (0, startbox, "Destination"))
+    heappush(queue, (0, goal, "Start"))
+
+    while queue:
+        priority, currentbox, direction = heappop(queue)
+
+        # If we reach the end box
+        if (currentbox == endbox and direction == "Destination"):#chagne this, delete comment later
+            print("SUCCESS")
+            return reconstruct_path(TheDict, startbox, endbox, start, goal)
+        
+        if (currentbox == startbox and direction == "Start"):#change this, delete comment later
+            print("SUCCESS")
+            return reconstruct_path(TheDict, startbox, endbox, start, goal)
+
+        # Else explore neighbors
+        for neighbor in adj[currentbox]:
+            step_cost = euclideanDistance(boxToCenterPoint(currentbox), boxToCenterPoint(neighbor))[0]
+            newcost = pathcost[currentbox] + step_cost
+
+            if neighbor not in pathcost or newcost < pathcost[neighbor]:
+                pathcost[neighbor] = newcost
+                priority = newcost + euclideanDistance(boxToCenterPoint(neighbor), boxToCenterPoint(endbox))[0]
+                heappush(queue, (priority, neighbor))
+                TheDict[neighbor] = currentbox
+
+            
+
+    # If no path is found
+    print("NO PATH FOUND")
+    return []
