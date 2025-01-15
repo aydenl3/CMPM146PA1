@@ -110,47 +110,48 @@ def euclideanDistance(point, pointtwo): #finds the closest disance between two p
     return [math.sqrt((point[0] - pointtwo[0])**2 + (point[1] - pointtwo[1])**2)]
 
 def AStarMonodirection(start, goal, adj, startbox, endbox, TheDict):
-    TheDict = {startbox : []}
-    pathcost = {startbox : 0}
+    TheDict.update({startbox: None}) 
+    pathcost = {startbox: 0}
     queue = []
     heappush(queue, (0, startbox))
+
     while queue:
-        priority, currentbox = heappop(queue)                         #priority = (int) cell = (x1, x2, y1, y2) celledge = (x, y)                                                                      #cellcenter = (xmid, ymid)
-        if(currentbox == endbox): # this checks for whether we are in last box
-            TheDict[currentbox] = endbox
+        priority, currentbox = heappop(queue)
+
+        # If we reach the end box
+        if currentbox == endbox:
             print("SUCCESS")
-            print(currentbox)
-            print(endbox)
-            npath = [startbox]
-            print(f"npath:{npath}")
-            drawnpath = [start, boxesToEdgePoint(start,TheDict.get(startbox))]
-            print(drawnpath)
-            while npath[-1] != endbox:
-                child = TheDict.get(npath[-1])
-                try:
-                    print(child)
-                except:
-                    print("NO CHILD")
-                if(child == None):
-                    #print(TheDict)
-                    print("CHILD DROPPED")
-                    return drawnpath
-                npath.append(child)
-                print(f"PATHPOINT:{drawnpath[-1]}")
-                drawnpath.append(boxesToEdgePoint(drawnpath[-1],child))
-                if(len(npath) > 500):
-                    print("PATH TOO LONG")
-                    break
-            drawnpath.append(goal)
-            return drawnpath 
-        else:
-            for neighbor in adj[currentbox]:                                           #adj[cel] = [(x1, x2, y1, y2), (x1, x2, y1, y2)...()], x = (x1, x2, y1, y2)
-                newcost = priority + euclideanDistance(boxToCenterPoint(currentbox), goal)[0]     #newcost = (int) + (int)                               #newx = [x, y]
-                if(neighbor not in pathcost or newcost < pathcost[neighbor]):     #Error here
-                    pathcost[neighbor] = newcost
-                    TheDict[currentbox] = neighbor
-                    #print(f"{TheDict.get(currentbox)}\n\n\n")
-                    heappush(queue, (newcost, neighbor))
+            return reconstruct_path(TheDict, startbox, endbox, start, goal)
+
+        # Else explore neighbors
+        for neighbor in adj[currentbox]:
+            step_cost = euclideanDistance(boxToCenterPoint(currentbox), boxToCenterPoint(neighbor))[0]
+            newcost = pathcost[currentbox] + step_cost
+
+            if neighbor not in pathcost or newcost < pathcost[neighbor]:
+                pathcost[neighbor] = newcost
+                priority = newcost + euclideanDistance(boxToCenterPoint(neighbor), boxToCenterPoint(endbox))[0]
+                heappush(queue, (priority, neighbor))
+                TheDict[neighbor] = currentbox
+
+    # If no path is found
+    print("NO PATH FOUND")
+    return []
+
+def reconstruct_path(TheDict, startbox, endbox, start, goal):
+    path = [goal]
+    current = endbox
+    if(startbox == endbox):
+        path.append(start)
+        return path
+    
+    #current = TheDict[current]
+    while current != startbox:
+        path.append(boxesToEdgePoint(path[-1], current))
+        current = TheDict[current]
+    path.append(start)
+    return path
+
 
 def path_to_cell(cell, path):
     print (f"{path} \n\n\n")
