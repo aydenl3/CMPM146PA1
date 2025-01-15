@@ -1,4 +1,5 @@
 import math
+from heapq import heappush, heappop
 def find_path (source_point, destination_point, mesh):
 
     """
@@ -28,12 +29,18 @@ def find_path (source_point, destination_point, mesh):
             start_end_boxes.append(box)
 
     print(start_end_boxes)
-
+    """
     #simple search algorithm
     try:
         path = BFS(start_end_boxes[0], start_end_boxes[1], mesh, source_point, destination_point,boxes)
     except: #only runs when invalid inputs(needs 2 boxes), or the other case. 
-        print("No path!2")
+        print("No path!")
+    """
+    #A* implemenation
+    #try:
+    path = AStarMonodirection(source_point, destination_point, mesh["adj"], start_end_boxes[0], start_end_boxes[1], boxes)
+    #except:
+    print("No path!")
 
     return path, boxes.keys()
 
@@ -74,7 +81,7 @@ def boxToCenterPoint(box): #Turns a box into a center point and returns it (x,y)
     pointtwo = (box[2] + box[3]) / 2 
     return [pointone, pointtwo]
 
-def boxesToEdgePoint(point, box): #Finds a range at the border of two points. Returns the average of the range (x,y).
+def boxesToEdgePoint(point, box): 
     p1 = (box[0],box[2])
     p2 = (box[1],box[2])
     p3 = (box[0],box[3])
@@ -84,21 +91,48 @@ def boxesToEdgePoint(point, box): #Finds a range at the border of two points. Re
     dist2 = euclideanDistance(point,p2)
     dist3 = euclideanDistance(point,p3)
     dist4 = euclideanDistance(point,p4)
-    #print(min(euclideanDistance(point,p1),euclideanDistance(point,p2),euclideanDistance(point,p3),euclideanDistance(point,p4)))
+    print(min(euclideanDistance(point,p1),euclideanDistance(point,p2),euclideanDistance(point,p3),euclideanDistance(point,p4)))
     if(dist1 <= dist2 and dist1 <= dist3 and dist1 <= dist4):
-        #print(dist1)
+        print(dist1)
         return p1
     elif(dist2 <= dist1 and dist2 <= dist3 and dist2 <= dist4):
-        #print(dist2)
+        print(dist2)
         return p2
     elif(dist3 <= dist1 and dist3 <= dist2 and dist3 <= dist4):
-        #print(dist3)
+        print(dist3)
         return p3
     elif(dist4 <= dist1 and dist4 <= dist2 and dist4 <= dist3):
-        #print(dist4)
+        print(dist4)
         return p4
     else:
-        print("ERO")
+        print("ERROR")
 
 def euclideanDistance(point, pointtwo): #finds the closest disance between two points. Returns an int.
-    return [math.sqrt((point[0] + pointtwo[0])^2 + (point[1] + pointtwo[1])^2)]
+    return [math.sqrt((point[0] - pointtwo[0])**2 + (point[1] - pointtwo[1])**2)]
+
+def AStarMonodirection(start, goal, adj, startbox, endbox, boxes):
+    path = {start : []}
+    pathedges = {start : []}
+    pathcost = {start : 0}
+    queue = []
+    heappush(queue, (0, startbox, start))
+    while queue:
+        priority, cell, celledge = heappop(queue)                         #priority = (int) cell = (x1, x2, y1, y2) celledge = (x, y)
+        cellcenter = boxToCenterPoint(cell)                               #cellcenter = (xmid, ymid)
+        if(cellcenter == boxToCenterPoint(endbox)):
+            return path_to_cell(celledge, pathedges)
+        else:
+            for x in adj[cell]:                                           #adj[cel] = [(x1, x2, y1, y2), (x1, x2, y1, y2)...()], x = (x1, x2, y1, y2)
+                newcost = priority + euclideanDistance(cell, goal)[0]     #newcost = (int) + (int)
+                newx = boxToCenterPoint(x)                                #newx = [x, y]
+                if(newx not in pathcost or newcost < pathcost[newx]):     #Error here
+                    pathcost[newx] = newcost
+                    path[newx] = cell
+                    xedge = boxesToEdgePoint(goal, x)
+                    pathedges[newx] = xedge
+                    heappush(queue, (newcost, x, xedge))
+
+def path_to_cell(cell, path):
+    if(cell == []):
+        return []
+    return path_to_cell(path[cell], path) + [cell]
