@@ -38,7 +38,7 @@ def find_path (source_point, destination_point, mesh):
     """
     #A* implemenation
     #try:
-    path = AStarMonodirection(source_point, destination_point, mesh["adj"], start_end_boxes[0], start_end_boxes[1], boxes)
+    path = AStarBidirection(source_point, destination_point, mesh["adj"], start_end_boxes[0], start_end_boxes[1], boxes)
     #except:
     #print("No path!")
     print(path)
@@ -161,38 +161,76 @@ def path_to_cell(cell, path):
     return path_to_cell(path[cell], path) + [cell]
 
 def AStarBidirection(start, goal, adj, startbox, endbox, TheDict):
+    TheDicttwo = TheDict.copy()
     TheDict.update({startbox: None}) 
-    TheDicttwo.update({endbox: None}) #edit later
+    TheDicttwo.update({endbox: None})
     pathcost = {startbox: 0}
+    pathcostother = {endbox: 1}
     queue = []
     heappush(queue, (0, startbox, "Destination"))
-    heappush(queue, (0, goal, "Start"))
+    heappush(queue, (0, endbox, "Start"))
 
     while queue:
         priority, currentbox, direction = heappop(queue)
 
         # If we reach the end box
-        if (currentbox == endbox and direction == "Destination"):#chagne this, delete comment later
+        if (currentbox in TheDicttwo and currentbox in TheDict and direction == "Destination"):#chagne this, delete comment later
             print("SUCCESS")
-            return reconstruct_path(TheDict, startbox, endbox, start, goal)
+            temp = currentbox
+            return reconstruct_path_two(TheDict, startbox, endbox, start, goal, TheDicttwo, temp)
         
-        if (currentbox == startbox and direction == "Start"):#change this, delete comment later
-            print("SUCCESS")
-            return reconstruct_path(TheDict, startbox, endbox, start, goal)
+        if (currentbox in TheDict and currentbox in TheDicttwo and direction == "Start"):#change this, delete comment later
+            print("SUCCESS2")
+            temp = currentbox
+            return reconstruct_path_two(TheDict, startbox, endbox, start, goal, TheDicttwo, temp)
 
         # Else explore neighbors
         for neighbor in adj[currentbox]:
-            step_cost = euclideanDistance(boxToCenterPoint(currentbox), boxToCenterPoint(neighbor))[0]
-            newcost = pathcost[currentbox] + step_cost
-
-            if neighbor not in pathcost or newcost < pathcost[neighbor]:
-                pathcost[neighbor] = newcost
-                priority = newcost + euclideanDistance(boxToCenterPoint(neighbor), boxToCenterPoint(endbox))[0]
-                heappush(queue, (priority, neighbor))
-                TheDict[neighbor] = currentbox
-
+            if(direction == "Destination"):
+                step_cost = euclideanDistance(boxToCenterPoint(currentbox), boxToCenterPoint(neighbor))[0]
+                newcost = pathcost[currentbox] + step_cost
+                if neighbor not in pathcost or newcost < pathcost[neighbor]:
+                    pathcost[neighbor] = newcost
+                    priority = newcost + euclideanDistance(boxToCenterPoint(neighbor), boxToCenterPoint(endbox))[0]
+                    heappush(queue, (priority, neighbor, "Destination"))
+                    TheDict[neighbor] = currentbox
+            else:
+                step_cost = euclideanDistance(boxToCenterPoint(currentbox), boxToCenterPoint(neighbor))[0]
+                newcost = pathcostother[currentbox] + step_cost
+                if neighbor not in pathcostother or newcost < pathcostother[neighbor]:
+                    pathcostother[neighbor] = newcost
+                    priority = newcost + euclideanDistance(boxToCenterPoint(neighbor), boxToCenterPoint(startbox))[0]
+                    heappush(queue, (priority, neighbor, "Start"))
+                    TheDicttwo[neighbor] = currentbox
+            
             
 
     # If no path is found
     print("NO PATH FOUND")
     return []
+
+    
+def reconstruct_path_two(TheDict, startbox, endbox, start, goal, TheDicttwo, temp):
+    path = [start]
+    pathtwo = [boxesToEdgePoint(start, temp)]
+    current = temp
+    currenttwo = temp
+    if(startbox == endbox):
+        path.append(start)
+        return path
+    while currenttwo != None:
+        if(current != None):
+            path.append(boxesToEdgePoint(path[-1], current))
+            current = TheDict[current]
+        elif(currenttwo != None):
+            pathtwo.append(boxesToEdgePoint(pathtwo[-1], currenttwo))
+            currenttwo = TheDicttwo[currenttwo]
+    print(path, pathtwo)
+    path.reverse()
+    path = path[:-1]
+    path.insert(0, start)
+    path = path + pathtwo
+    
+    path.append(goal)
+    print(boxesToEdgePoint(start, temp))
+    return path 
