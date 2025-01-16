@@ -155,8 +155,8 @@ def AStarBidirection(start, goal, adj, startbox, endbox, TheDict):
     TheDicttwo = TheDict.copy()
     TheDict.update({startbox: None}) 
     TheDicttwo.update({endbox: None})
-    pathcost = {startbox: 0}
-    pathcostother = {endbox: 1}#this is one otherwise it breaks. I dont know why
+    pathcost = {startbox: 1}
+    pathcostother = {endbox: 0}#this is one otherwise it breaks. I dont know why
     queue = []
     heappush(queue, (0, startbox, "Destination"))
     heappush(queue, (0, endbox, "Start"))
@@ -164,7 +164,7 @@ def AStarBidirection(start, goal, adj, startbox, endbox, TheDict):
     while queue:
         priority, currentbox, direction = heappop(queue)
 
-        if currentbox in TheDict and currentbox in TheDicttwo:
+        if currentbox in TheDict.keys() and currentbox in TheDicttwo.keys():
             return reconstruct_path_two(TheDict, startbox, endbox, start, goal, TheDicttwo, currentbox)
 
 
@@ -202,17 +202,16 @@ def reconstruct_path_two(TheDict, startbox, endbox, start, goal, TheDicttwo, tem
     if(startbox == endbox):
         path.append(goal)
         return path
-    while currenttwo != None:
-        if(current != None):
-            path.append(boxesToEdgePoint(path[-1], current))
-            current = TheDict[current]
-        elif(currenttwo != None):
-            pathtwo.append(boxesToEdgePoint(pathtwo[-1], currenttwo))
-            currenttwo = TheDicttwo[currenttwo]
+    while current != None:
+        path.append(boxesToEdgePoint(start, current))
+        current = TheDict[current]
     path.reverse()              #this section is because path is actually reversed.
     path = path[:-1]
     path.insert(0, start)
+    while currenttwo != None:
+        if(currenttwo != temp):
+            pathtwo.append(boxesToEdgePoint(goal, currenttwo))
+        currenttwo = TheDicttwo[currenttwo]
     path = path + pathtwo
-
     path.append(goal)
     return path 
