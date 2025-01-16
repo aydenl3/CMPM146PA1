@@ -21,7 +21,6 @@ def find_path (source_point, destination_point, mesh):
     start_end_boxes = []
     print(f"Source Point:{source_point}\nDestination Point:{destination_point}")
 
-   
     for box in mesh.get("boxes"):
         if (source_point[0] < box[1] and source_point[0] > box[0]) and (source_point[1] < box[3] and source_point[1] > box[2]):
             start_end_boxes.insert(0, box)
@@ -29,6 +28,7 @@ def find_path (source_point, destination_point, mesh):
             start_end_boxes.append(box)
 
     print(start_end_boxes)
+
     """
     #simple search algorithm
     try:
@@ -36,18 +36,17 @@ def find_path (source_point, destination_point, mesh):
     except: #only runs when invalid inputs(needs 2 boxes), or the other case. 
         print("No path!")
     """
+
     #A* implemenation
-    #try:
-    path = AStarBidirection(source_point, destination_point, mesh["adj"], start_end_boxes[0], start_end_boxes[1], boxes)
-    #except:
-    #print("No path!")
-    print(path)
+    try:
+        path = AStarBidirection(source_point, destination_point, mesh["adj"], start_end_boxes[0], start_end_boxes[1], boxes)
+    except:
+        print("No path!")
     return path, boxes.keys()
 
 def BFS(start, goal, mesh, sources, goals,TheDict):
     queue = [start] 
     TheSet = set([])
-    #TheDict = {} # {CHILD : PARENT}
     while True:
         node = queue.pop()
         if(node == goal):
@@ -57,7 +56,6 @@ def BFS(start, goal, mesh, sources, goals,TheDict):
             while path[-1] != start:
                 parent = TheDict.get(path[-1])
                 path.append(parent)
-                #print(f"PATHPOINT:{drawnpath[-1]}")
                 drawnpath.append(boxesToEdgePoint(drawnpath[-1],parent))
                 if(len(path) > 500):
                     print("PATH TOO LONG")
@@ -85,23 +83,17 @@ def boxesToEdgePoint(point, box):
     p2 = (box[1],box[2])
     p3 = (box[0],box[3])
     p4 = (box[1],box[3])
-    #print("1")
     dist1 = euclideanDistance(point,p1)
     dist2 = euclideanDistance(point,p2)
     dist3 = euclideanDistance(point,p3)
     dist4 = euclideanDistance(point,p4)
-    #print(min(euclideanDistance(point,p1),euclideanDistance(point,p2),euclideanDistance(point,p3),euclideanDistance(point,p4)))
     if(dist1 <= dist2 and dist1 <= dist3 and dist1 <= dist4):
-        #print(dist1)
         return p1
     elif(dist2 <= dist1 and dist2 <= dist3 and dist2 <= dist4):
-        #print(dist2)
         return p2
     elif(dist3 <= dist1 and dist3 <= dist2 and dist3 <= dist4):
-        #print(dist3)
         return p3
     elif(dist4 <= dist1 and dist4 <= dist2 and dist4 <= dist3):
-        #print(dist4)
         return p4
     else:
         print("ERROR")
@@ -145,7 +137,6 @@ def reconstruct_path(TheDict, startbox, endbox, start, goal):
         path.append(start)
         return path
     path.append(boxesToEdgePoint(start, endbox))
-    #current = TheDict[current]
     while current != startbox:
         path.append(boxesToEdgePoint(path[-1], current))
         current = TheDict[current]
@@ -154,7 +145,7 @@ def reconstruct_path(TheDict, startbox, endbox, start, goal):
     return path
 
 
-def path_to_cell(cell, path):
+def path_to_cell(cell, path):#does not work with our implementaion
     print (f"{path} \n\n\n")
     if(cell == []):
         return []
@@ -165,7 +156,7 @@ def AStarBidirection(start, goal, adj, startbox, endbox, TheDict):
     TheDict.update({startbox: None}) 
     TheDicttwo.update({endbox: None})
     pathcost = {startbox: 0}
-    pathcostother = {endbox: 1}
+    pathcostother = {endbox: 1}#this is one otherwise it breaks. I dont know why
     queue = []
     heappush(queue, (0, startbox, "Destination"))
     heappush(queue, (0, endbox, "Start"))
@@ -174,13 +165,11 @@ def AStarBidirection(start, goal, adj, startbox, endbox, TheDict):
         priority, currentbox, direction = heappop(queue)
 
         # If we reach the end box
-        if (currentbox in TheDicttwo and currentbox in TheDict and direction == "Destination"):#chagne this, delete comment later
-            print("SUCCESS")
+        if (currentbox in TheDicttwo and currentbox in TheDict and direction == "Destination"):#Checks Destination
             temp = currentbox
             return reconstruct_path_two(TheDict, startbox, endbox, start, goal, TheDicttwo, temp)
         
-        if (currentbox in TheDict and currentbox in TheDicttwo and direction == "Start"):#change this, delete comment later
-            print("SUCCESS2")
+        if (currentbox in TheDict and currentbox in TheDicttwo and direction == "Start"):#Checks Start
             temp = currentbox
             return reconstruct_path_two(TheDict, startbox, endbox, start, goal, TheDicttwo, temp)
 
@@ -225,12 +214,10 @@ def reconstruct_path_two(TheDict, startbox, endbox, start, goal, TheDicttwo, tem
         elif(currenttwo != None):
             pathtwo.append(boxesToEdgePoint(pathtwo[-1], currenttwo))
             currenttwo = TheDicttwo[currenttwo]
-    print(path, pathtwo)
-    path.reverse()
+    path.reverse()              #this section is because path is actually reversed.
     path = path[:-1]
     path.insert(0, start)
     path = path + pathtwo
-    
+
     path.append(goal)
-    print(boxesToEdgePoint(start, temp))
     return path 
