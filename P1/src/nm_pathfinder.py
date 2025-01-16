@@ -164,14 +164,9 @@ def AStarBidirection(start, goal, adj, startbox, endbox, TheDict):
     while queue:
         priority, currentbox, direction = heappop(queue)
 
-        # If we reach the end box
-        if (currentbox in TheDicttwo and currentbox in TheDict and direction == "Destination"):#Checks Destination
-            temp = currentbox
-            return reconstruct_path_two(TheDict, startbox, endbox, start, goal, TheDicttwo, temp)
-        
-        if (currentbox in TheDict and currentbox in TheDicttwo and direction == "Start"):#Checks Start
-            temp = currentbox
-            return reconstruct_path_two(TheDict, startbox, endbox, start, goal, TheDicttwo, temp)
+        if currentbox in TheDict and currentbox in TheDicttwo:
+            return reconstruct_path_two(TheDict, startbox, endbox, start, goal, TheDicttwo, currentbox)
+
 
         # Else explore neighbors
         for neighbor in adj[currentbox]:
@@ -205,7 +200,7 @@ def reconstruct_path_two(TheDict, startbox, endbox, start, goal, TheDicttwo, tem
     current = temp
     currenttwo = temp
     if(startbox == endbox):
-        path.append(start)
+        path.append(goal)
         return path
     while currenttwo != None:
         if(current != None):
